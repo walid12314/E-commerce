@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { IOrder } from "@/lib/db/models/order.model";
 import { formatDateTime } from "@/lib/utils";
 
@@ -37,7 +36,6 @@ export default function OrderDetailsForm({
     expectedDeliveryDate,
     isPaid,
   } = order;
-  const { toast } = useToast();
 
   if (isPaid) {
     redirect(`/account/orders/${order._id}`);
