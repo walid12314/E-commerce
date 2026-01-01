@@ -1,28 +1,28 @@
-import { Resend } from 'resend'
-import PurchaseReceiptEmail from './purchase-receipt'
-import { IOrder } from '@/lib/db/models/order.model'
-import AskReviewOrderItemsEmail from './ask-review-order-items'
-import { SENDER_EMAIL, SENDER_NAME } from '@/lib/constants'
-
-const resend = new Resend(process.env.RESEND_API_KEY as string)
+import { render } from "@react-email/render";
+import PurchaseReceiptEmail from "./purchase-receipt";
+import AskReviewOrderItemsEmail from "./ask-review-order-items";
+import { IOrder } from "@/lib/db/models/order.model";
+import { SENDER_EMAIL, SENDER_NAME } from "@/lib/constants";
+import { transporter } from "@/lib/email/mailer";
 
 export const sendPurchaseReceipt = async ({ order }: { order: IOrder }) => {
-  await resend.emails.send({
+  const html = await render(<PurchaseReceiptEmail order={order} />);
+
+  await transporter.sendMail({
     from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
     to: (order.user as { email: string }).email,
-    subject: 'Order Confirmation',
-    react: <PurchaseReceiptEmail order={order} />,
-  })
-}
+    subject: "Order Confirmation",
+    html,
+  });
+};
 
 export const sendAskReviewOrderItems = async ({ order }: { order: IOrder }) => {
-  const oneDayFromNow = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString()
+  const html = await render(<AskReviewOrderItemsEmail order={order} />);
 
-  await resend.emails.send({
+  await transporter.sendMail({
     from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
     to: (order.user as { email: string }).email,
-    subject: 'Review your order items',
-    react: <AskReviewOrderItemsEmail order={order} />,
-    scheduledAt: oneDayFromNow,
-  })
-}
+    subject: "Review your order items",
+    html,
+  });
+};
