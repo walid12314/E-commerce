@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { cookies } from "next/headers";
+import type { ReactNode } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,33 +24,32 @@ export async function generateMetadata() {
   const {
     site: { slogan, name, description, url },
   } = await getSetting();
+
   return {
     title: {
       template: `%s | ${name}`,
       default: `${name}. ${slogan}`,
     },
-    description: description,
+    description,
     metadataBase: new URL(url),
   };
 }
 
-export default async function AppLayout({
-  params,
-  children,
-}: {
-  params: { locale: string };
-  children: React.ReactNode;
-}) {
-  const setting = await getSetting();
-  const currencyCookie = (await cookies()).get("currency");
-  const currency = currencyCookie ? currencyCookie.value : "USD";
+type Props = {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+};
 
-  const { locale } = params;
-  // Ensure that the incoming `locale` is valid
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function AppLayout({ params, children }: Props) {
+  const { locale } = await params;
+
   if (!routing.locales.includes(locale as any)) {
     notFound();
   }
+
+  const setting = await getSetting();
+  const currencyCookie = (await cookies()).get("currency");
+  const currency = currencyCookie?.value ?? "USD";
   const messages = await getMessages();
 
   return (
